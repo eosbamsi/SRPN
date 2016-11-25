@@ -11,7 +11,7 @@ import java.util.*;
 
 public class SRPNd{
 	
-	List<Integer> stack = new Stack<Integer>(); //Now stack only accepts integers
+	List<Integer> stack = new Stack<Integer>(); //Now stack only accepts integers;
 	/**
 	 * Upon closer inspection, what looked like a random number generating function
 	 * executed by entering symbol "r" on the keyboard turned out to be a call to
@@ -30,9 +30,9 @@ public class SRPNd{
     int RandNumPos = 0;
     int RandNum = RandomNumbers.get(RandNumPos);
     
-    public void SRPNd(){
-		System.out.println("SRPN initialised!");
-	}
+    //public void SRPNd(){
+	//	System.out.println("SRPN initialised!");
+	//}
 	
     /**
      * 1. open the class you want to step through
@@ -130,26 +130,93 @@ public class SRPNd{
 		return false;
 	}
 	
+	public int cmdExecution(String s, int n){
+		if (stack.size() <= 1 && s.charAt(n) != '-'){
+			System.out.println("Stack underflow");
+		}
+		else{
+			if (s.charAt(n) == '+'){
+				int sum = stack.get(stack.size()-2) + stack.get(stack.size()-1);
+				stack.set(stack.size()-2, sum); // change the value of the second to last element to the sum of the top two
+				stack.remove(stack.size()-1); // and delete the top one
+			}
+			else if (s.charAt(n) == '-'){
+				if(checkIfIntNext(s, n, 9)){ // in this case this is not an operation, but an indicator of a negative value for the next integer
+					int nIncr = integerDetected(s, (n+1)); // jump by length of number (and then +1 for the loop) => first element after it
+					stack.set(stack.size()-1, stack.get(stack.size()-1)*(-1));
+					return nIncr;
+				}
+				else{
+					if (stack.size() <= 1){
+						System.out.println("Stack underflow");
+					}
+					else{
+						int diff = stack.get(stack.size()-2) - stack.get(stack.size()-1);
+						stack.set(stack.size()-2, diff); // change the value of the second to last element to the difference of the top two
+						stack.remove(stack.size()-1); // and delete the top one
+					}
+				}
+			}
+			else if (s.charAt(n) == '*'){
+				int mult = stack.get(stack.size()-2) * stack.get(stack.size()-1);
+				stack.set(stack.size()-2, mult); // change the value of the second to last element to the product of the top two
+				stack.remove(stack.size()-1); // and delete the top one
+			}
+			else if (s.charAt(n) == '/'){
+				if (stack.get(stack.size()-1) == 0){
+					System.out.println("Divide by zero.");
+				}
+				else{
+					int diff = stack.get(stack.size()-2) / stack.get(stack.size()-1);
+					stack.set(stack.size()-2, diff); // change the value of the second to last element to the result of division the top two 
+					stack.remove(stack.size()-1); // and delete the top one
+				}
+			}
+			else if (s.charAt(n) == '^'){
+				if (stack.get(stack.size()-1) <= 0){
+					System.out.println("Negative power.");
+				}
+				else{
+					int frac = (int) Math.pow(stack.get(stack.size()-2), stack.get(stack.size()-1));
+					stack.set(stack.size()-2, frac); // change the value of the second to last element by raising it to the power of the top one 
+					stack.remove(stack.size()-1); // and delete the top one
+				}
+			}
+			else if (s.charAt(n) == '%'){
+				if (stack.get(stack.size()-1) == 0){
+					System.out.println("Divide by zero.");
+				}
+				else{
+					int rem = stack.get(stack.size()-2) % stack.get(stack.size()-1);
+					stack.set(stack.size()-2, rem); // change the value of the second to last element to the remained of its division by the top one 
+					stack.remove(stack.size()-1); // and delete the top one
+				}
+			}
+		}
+		return(0);
+	}
+		
+	
 	public void processCommand(String s) {
 		for (int n = 0; n <= s.length()-1; n++){//actions will be made step-by-step for all characters in the string
 			if (checkForInt(s, n)){
 				n += integerDetected(s, n)-1;
 				if(n<=s.length()-2){
-					System.out.println("int added, jumping to element " + (n+1) + ", which is " + s.charAt(n+1));
+					System.out.println("nxtEl: " + (n+1) + ", which is " + s.charAt(n+1));
 				}
 				else{
-					System.out.println("line finished");
+					System.out.println("endline");
 				}
 			}
 			else if (checkForCmd(s, n)){
-				
+				n+=cmdExecution(s, n);
 			}
 			else if (s.charAt(n) == 'd') {// procedure for display stack
-	        	System.out.println("displaying stack");
+	        	System.out.println("stack:");
 				for (int i = 0; i <= stack.size()-1; i++){
 	        		System.out.println(stack.get(i)); //prints all elements of the stack bottom to top
 	        	}
-	        }
+	        } // 1 2+ 3 -4- 56* 7/8^90%d
 			else if (s.charAt(n) == 'r') { // procedure for "random" number generation
 	        	stack.add(RandNum);
 	        	if (RandNumPos<99){
@@ -213,19 +280,6 @@ public class SRPNd{
  * System.out.println(Arrays.toString(stack.toArray())); //http://stackoverflow.com/questions/16082380/printing-stack-without-popping-elements-java
  * 
  * stack.add(Integer.parseInt(s)); //http://stackoverflow.com/questions/5585779/converting-string-to-int-in-java
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  *
  *
  *
